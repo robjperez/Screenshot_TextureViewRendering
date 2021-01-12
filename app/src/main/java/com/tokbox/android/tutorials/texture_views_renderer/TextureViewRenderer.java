@@ -545,9 +545,9 @@ class TextureViewRenderer extends BaseVideoRenderer {
                     u -= 128;
                     v -= 128;
 
-                    double r = Math.min(1.164 * y             + 1.596 * v, 255);
-                    double g = Math.min(1.164 * y - 0.392 * u - 0.813 * v, 255);
-                    double b = Math.min(1.164 * y + 2.017 * u, 255);
+                    double r = Math.max(Math.min(1.164 * y             + 1.596 * v, 255), 0);
+                    double g = Math.max(Math.min(1.164 * y - 0.392 * u - 0.813 * v, 255), 0);
+                    double b = Math.max(    Math.min(1.164 * y + 2.017 * u, 255), 0);
 
                     rgbBytes[idx++] = (0xFF << 24) + ((int)r << 16) + ((int)g << 8) + (int)b;
                 }
