@@ -532,25 +532,24 @@ class TextureViewRenderer extends BaseVideoRenderer {
         public Bitmap toRGB(byte[] yuvBuffer, int w, int h, int yStride, int uvStride) {
             int[] rgbBytes = new int[h*w];
             int idx = 0;
-            int uvBufferStart =  w * h;
+            int uBufferStart =  (h * yStride);
+            int uvBufferSize = (w / 2) * (h / 2);
+            int vBufferStart =  uBufferStart + uvBufferSize;
             for (int row = 0; row < h; row++) {
                 for (int col = 0; col < w; col++) {
-                    int y = yuvBuffer[row * yStride + col] & 0xff;
-                    int u = yuvBuffer[uvBufferStart + (row/2 * uvStride) + col/2] & 0xff;
-                    int v = yuvBuffer[uvBufferStart + (row/2 * uvStride) + col/2] & 0xff;
+                    int y = yuvBuffer[(row * yStride) + col] & 0xFF;
+                    int u = yuvBuffer[uBufferStart + (row/2 * uvStride) + col/2] & 0xFF;
+                    int v = yuvBuffer[vBufferStart + (row/2 * uvStride) + col/2] & 0xFF;
 
-                    int y1 = ((19077 << 8) * y) >> 16;
-                    int r = (y1 + (((26149 << 8) * v) >> 16) - 14234) >> 6;
-                    int g = (y1 - (((6419 << 8) * u) >> 16) - (((13320 << 8) * v) >> 16) +  8708) >> 6;
-                    int b = (y1 + (((33050 << 8) * u) >> 16) - 17685) >> 6;
+                    y -= 16;
+                    u -= 128;
+                    v -= 128;
 
-                    if (r < 0) r = 0;
-                    if (g < 0) g = 0;
-                    if (b < 0) b = 0;
-                    if (r > 255) r = 255;
-                    if (g > 255) g = 255;
-                    if (b > 255) b = 255;
-                    rgbBytes[idx++] = 0xff000000 + b + 256 * (g + 256 * r);
+                    double r = Math.min(1.164 * y             + 1.596 * v, 255);
+                    double g = Math.min(1.164 * y - 0.392 * u - 0.813 * v, 255);
+                    double b = Math.min(1.164 * y + 2.017 * u, 255);
+
+                    rgbBytes[idx++] = (0xFF << 24) + ((int)r << 16) + ((int)g << 8) + (int)b;
                 }
             }
             return Bitmap.createBitmap(rgbBytes, w, h, Bitmap.Config.ARGB_8888);
