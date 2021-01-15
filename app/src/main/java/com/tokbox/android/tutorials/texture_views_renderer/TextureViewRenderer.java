@@ -509,6 +509,8 @@ class TextureViewRenderer extends BaseVideoRenderer {
         }
 
         public void takeScreenshot(String path) {
+            long startTime = System.currentTimeMillis();
+
             frameLock.lock();
             currentFrame.getBuffer().rewind();
             byte[] framebuffer = new byte[currentFrame.getBuffer().remaining()];
@@ -519,6 +521,10 @@ class TextureViewRenderer extends BaseVideoRenderer {
             frameLock.unlock();
 
             Bitmap b = toRGB(framebuffer, w, h, strides[0], strides[1]);
+            long difference = System.currentTimeMillis() - startTime;
+
+            Log.d(TAG, "Difference after RGB conversion: " + difference + " ms");
+
             Log.d(TAG, "Saving capture to: " + path);
             try (FileOutputStream f = new FileOutputStream(path)) {
                 b.compress(Bitmap.CompressFormat.JPEG, 100, f);
@@ -527,6 +533,9 @@ class TextureViewRenderer extends BaseVideoRenderer {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+
+            difference = System.currentTimeMillis() - startTime;
+            Log.d(TAG, "Difference after File writing: " + difference + " ms");
         }
 
         public Bitmap toRGB(byte[] yuvBuffer, int w, int h, int yStride, int uvStride) {
